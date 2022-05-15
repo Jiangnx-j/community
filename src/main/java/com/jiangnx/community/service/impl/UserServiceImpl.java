@@ -3,17 +3,127 @@ package com.jiangnx.community.service.impl;
 import com.jiangnx.community.dao.UserMapper;
 import com.jiangnx.community.entity.User;
 import com.jiangnx.community.service.UserService;
+import com.jiangnx.community.util.CommunityConstant;
+import com.jiangnx.community.util.CommunityUtil;
+import com.jiangnx.community.util.MyMailSender;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Autowired
     private UserMapper userMapper;
 
+    //用于发送邮件
+    @Autowired
+    private MyMailSender mailSender;
+
+    //用于发送邮件时传递参数给邮件html页面
+    @Autowired
+    private TemplateEngine templateEngine;
+
+    @Value("${community.domain}")
+    private String domain;
+
+    @Value("${server.servlet.context-path}")
+    private String contextPath;
+
+
     @Override
-    public User findUserById(Integer  userId) {
+    public User findUserById(Integer userId) {
         return userMapper.selectUserById(userId);
+    }
+
+    @Override
+    public Map<String, Object> register(User user) {
+        Map<String, Object> map = new HashMap<>();
+        if (user == null) {
+            throw new IllegalArgumentException("参数不能为空");
+        }
+        //判断用户信息是否为空
+        if (StringUtils.isBlank(user.getUsername())) {
+            map.put("usernameMsg", "用户名不能为空");
+            return map;
+        }
+        if (StringUtils.isBlank(user.getPassword())) {
+            map.put("passwordMsg", "密码不能为空");
+            return map;
+        }
+        if (StringUtils.isBlank(user.getEmail())) {
+            map.put("emailMsg", "邮箱不能为空");
+            return map;
+        }
+
+        //判断用户名和email是否已经被注册
+        User u = userMapper.selectUserByName(user.getUsername());
+        if (u != null) {
+            map.put("usernameMsg", "用户已存在");
+            return map;
+        }
+
+        u = userMapper.selectUserByEmail(user.getEmail());
+        if (u != null) {
+            map.put("emailMsg", "邮箱已被注册");
+            return map;
+        }
+        //开始注册用户,对密码加密，前端传过来的信息只有用户名、密码、邮箱、设置用户状态等信息
+        // 0普通用户 1超级管理员 2版主
+        user.setType(0);
+        // 0未激活 1 激活
+        user.setStatus(0);
+        user.setCreateTime(new Date());
+        user.setSalt(CommunityUtil.generateUUID().substring(0, 5));
+        user.setActivationCode(CommunityUtil.generateUUID());
+        user.setHeaderUrl("static/img/4.jpg");
+        //user.setHeaderUrl(String.format("http://images.nowcoder.com/head/%dt.png", new Random().nextInt(1000)));
+        //对密码进行加密处理
+        String passwordString = user.getPassword() + user.getSalt();
+        user.setPassword(CommunityUtil.md5(passwordString));
+        userMapper.insertUser(user);
+
+        //发送短信验证码
+        Context context = new Context();
+        context.setVariable("username", user.getUsername());
+        String path = domain + contextPath + "/activation/" + user.getId() + "/" + user.getActivationCode();
+        context.setVariable("path", path);
+
+        //将html模板变为String类型，并且加上context中的参数
+        String content = templateEngine.process("/mail/activation", context);
+        //发送邮件
+        mailSender.sendMail(user.getEmail(), "激活邮件", content);
+
+
+        return map;
+    }
+
+    /**
+     * @param userid 用户id
+     * @param code   激活码
+     * @return 返回激活状态 ACTIVATION_SUCCESS ACTIVATION_REPEAT ACTIVATION_FALSE
+     */
+
+    @Override
+    public Integer activation(Integer userid, String code) {
+        User user = userMapper.selectUserById(userid);
+        if (user == null || "".equals(user.getActivationCode()) || code == null) {
+            return ACTIVATION_FALSE;
+        } else if (user.getStatus() == 1) {
+            return ACTIVATION_REPEAT;
+        } else if (code.equals(user.getActivationCode())) {
+            userMapper.updateStatus(1, userid);
+            return ACTIVATION_SUCCESS;
+        } else {
+            return ACTIVATION_FALSE;
+        }
     }
 }
