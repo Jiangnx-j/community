@@ -54,12 +54,19 @@
             <artifactId>spring-boot-starter-mail</artifactId>
             <version>2.6.7</version>
         </dependency>
-
+<!--        工具类，用于对字符串，集合等进行判空-->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.12.0</version>
         </dependency>
+<!--        生成图片验证码的工具-->
+        <dependency>
+            <groupId>com.github.penggle</groupId>
+            <artifactId>kaptcha</artifactId>
+            <version>2.3.2</version>
+        </dependency>
+
     </dependencies>
 
     <dependencyManagement>

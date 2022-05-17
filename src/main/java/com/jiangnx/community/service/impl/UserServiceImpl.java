@@ -1,6 +1,8 @@
 package com.jiangnx.community.service.impl;
 
+import com.jiangnx.community.dao.LoginTicketMapper;
 import com.jiangnx.community.dao.UserMapper;
+import com.jiangnx.community.entity.LoginTicket;
 import com.jiangnx.community.entity.User;
 import com.jiangnx.community.service.UserService;
 import com.jiangnx.community.util.CommunityConstant;
@@ -23,6 +25,9 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     //用于发送邮件
     @Autowired
@@ -125,5 +130,62 @@ public class UserServiceImpl implements UserService, CommunityConstant {
         } else {
             return ACTIVATION_FALSE;
         }
+    }
+
+    @Override
+    public Map<String,Object> login(String username,String password,long expiredSeconds){
+        Map<String, Object> map = new HashMap<>();
+
+        //判空
+        if (StringUtils.isBlank(username)){
+            map.put("usernameMsg", "用户名不能为空");
+            return map;
+        }
+        if (StringUtils.isBlank(password)){
+            map.put("passwordMsg", "密码不能为空");
+            return map;
+        }
+
+        //判断用户是否存在，是否激活
+        User user = userMapper.selectUserByName(username);
+        if (user == null){
+            map.put("usernameMsg", "该账户不存在");
+            return map;
+        }
+        if (user.getStatus() == 0){
+            map.put("usernameMsg", "该账户未激活，请检查邮箱查看邮件激活账户");
+            return map;
+        }
+
+        //验证密码
+        password = CommunityUtil.md5(password+user.getSalt());
+        if (!password.equals(user.getPassword())){
+            map.put("passwordMsg", "密码错误");
+            return map;
+        }
+
+        //生成登录凭证
+        LoginTicket loginTicket = new LoginTicket();
+        loginTicket.setUserId(user.getId());
+        loginTicket.setTicket(CommunityUtil.generateUUID());
+            //设置凭证是否有效 0-有效 1-无效
+        loginTicket.setStatus(0);
+            //设置过期时间，当前时间+有效时间
+        loginTicket.setExpired(new Date(System.currentTimeMillis()+expiredSeconds*1000));
+        loginTicketMapper.insertLoginTicket(loginTicket);
+
+        //将ticket的信息返回给controller，controller将ticket的信息保存在Cookie中，在用户下次访问时不必登录
+        map.put("ticket", loginTicket.getTicket());
+        return map;
+    }
+
+    @Override
+    public void logout(String ticket) {
+        loginTicketMapper.updateLoginTicketStatus(ticket,1);
+    }
+
+    @Override
+    public LoginTicket findLoginTicketByTicket(String ticket) {
+       return loginTicketMapper.selectLoginTicketByTicket(ticket);
     }
 }

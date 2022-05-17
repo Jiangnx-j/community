@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
+//用于发送短信使用
 @Component
 public class MyMailSender {
 
