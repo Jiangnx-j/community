@@ -3,8 +3,10 @@ package com.jiangnx.community.mappertest;
 import com.jiangnx.community.CommunityApplication;
 import com.jiangnx.community.dao.UserMapper;
 import com.jiangnx.community.entity.User;
+import com.sun.org.apache.bcel.internal.classfile.SourceFile;
 import org.apache.ibatis.annotations.Mapper;
 import org.junit.jupiter.api.Test;
+import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
@@ -56,6 +58,19 @@ public class UserMapperTest {
         System.out.println(userMapper.selectUserById(150).getPassword());
         int result = userMapper.updatePassword("2222", 150);
         System.out.println(userMapper.selectUserById(150).getPassword());
+    }
+
+    @Test
+    public void test01(){
+        String filename = "xxx.png";
+
+        String suffix = filename.substring(filename.lastIndexOf("."));
+        System.out.println(suffix);
+        if (!"png".equals(suffix)&!"jpg".equals(suffix)&!"jpeg".equals(suffix)){
+            System.out.println(111);
+        }else {
+            System.out.println(22);
+        }
     }
 
 }

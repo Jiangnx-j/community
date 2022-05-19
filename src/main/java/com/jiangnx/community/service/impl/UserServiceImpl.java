@@ -7,6 +7,7 @@ import com.jiangnx.community.entity.User;
 import com.jiangnx.community.service.UserService;
 import com.jiangnx.community.util.CommunityConstant;
 import com.jiangnx.community.util.CommunityUtil;
+import com.jiangnx.community.util.HostHolder;
 import com.jiangnx.community.util.MyMailSender;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class UserServiceImpl implements UserService, CommunityConstant {
 
     @Autowired
     private LoginTicketMapper loginTicketMapper;
+
+    @Autowired
+    private HostHolder hostHolder;
 
     //用于发送邮件
     @Autowired
@@ -187,5 +191,39 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     @Override
     public LoginTicket findLoginTicketByTicket(String ticket) {
        return loginTicketMapper.selectLoginTicketByTicket(ticket);
+    }
+
+    @Override
+    public Integer updateHeader(Integer userId, String headerUrl) {
+        return userMapper.updateHeader(userId,headerUrl);
+    }
+
+    @Override
+    public Map<String,Object> updateUserPassword(String oldPassword,String newPasswrod) {
+        Map<String,Object> map = new HashMap<>();
+        //判空
+       if (oldPassword == null){
+           map.put("passwordMsg","请输入原密码");
+           return map;
+       }
+       if (newPasswrod == null){
+           map.put("newPasswordMsg","请输入新密码");
+           return map;
+       }
+
+       //判断密码是否正确
+        User user = hostHolder.getUser();
+       if (user!=null){
+          oldPassword = CommunityUtil.md5(oldPassword+user.getSalt());
+          if (!oldPassword.equals(user.getPassword())){
+              map.put("passwordMsg", "密码错误");
+              return map;
+          }
+
+          //对新密码加密，然后更新
+          newPasswrod = CommunityUtil.md5(newPasswrod+user.getSalt());
+          userMapper.updatePassword(newPasswrod,user.getId());
+       }
+        return map;
     }
 }

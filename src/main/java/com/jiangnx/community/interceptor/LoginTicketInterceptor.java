@@ -1,4 +1,4 @@
-package com.jiangnx.interceptor;
+package com.jiangnx.community.interceptor;
 
 import com.jiangnx.community.entity.LoginTicket;
 import com.jiangnx.community.entity.User;
@@ -36,7 +36,6 @@ public class LoginTicketInterceptor implements HandlerInterceptor {
                 User user = userService.findUserById(loginTicket.getUserId());
                 hostHolder.setUser(user);
             }
-
         }
         return true;
     }

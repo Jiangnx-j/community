@@ -18,4 +18,10 @@ public interface CommunityConstant {
 
     //选择记住我选项的ticket的生效时间 100天
     long REMEMBER_EXPIRED = 60 * 60 * 24 * 100;
+
+    //实体类型，文章
+    Integer ENTITY_TYPE_POST = 1;
+
+    //实体类型评论
+    Integer ENTITY_TYPE_COMMENT = 2;
 }

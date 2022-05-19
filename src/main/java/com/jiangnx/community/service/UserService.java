@@ -21,4 +21,7 @@ public interface UserService {
 
     LoginTicket findLoginTicketByTicket(String ticket);
 
+    Integer updateHeader(Integer userId,String headerUrl);
+
+    Map<String,Object> updateUserPassword(String oldPassword,String newPassword);
 }

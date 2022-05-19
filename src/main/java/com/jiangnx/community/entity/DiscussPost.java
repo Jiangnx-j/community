@@ -11,7 +11,7 @@ public class DiscussPost {
     private String content;
     private Integer type;
     private Integer status;
-    private Date cerateTime;
+    private Date createTime;
     private Integer commentCount;
     private double score;
 
@@ -63,12 +63,12 @@ public class DiscussPost {
         this.status = status;
     }
 
-    public Date getCerateTime() {
-        return cerateTime;
+    public Date getCreateTime() {
+        return createTime;
     }
 
-    public void setCerateTime(Date cerateTime) {
-        this.cerateTime = cerateTime;
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
     }
 
     public Integer getCommentCount() {
@@ -96,7 +96,7 @@ public class DiscussPost {
                 ", content='" + content + '\'' +
                 ", type=" + type +
                 ", status=" + status +
-                ", cerateTime=" + cerateTime +
+                ", cerateTime=" + createTime +
                 ", commentCount=" + commentCount +
                 ", score=" + score +
                 '}';
@@ -114,12 +114,12 @@ public class DiscussPost {
                 Objects.equals(content, that.content) &&
                 Objects.equals(type, that.type) &&
                 Objects.equals(status, that.status) &&
-                Objects.equals(cerateTime, that.cerateTime) &&
+                Objects.equals(createTime, that.createTime) &&
                 Objects.equals(commentCount, that.commentCount);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, UserId, title, content, type, status, cerateTime, commentCount, score);
+        return Objects.hash(id, UserId, title, content, type, status, createTime, commentCount, score);
     }
 }

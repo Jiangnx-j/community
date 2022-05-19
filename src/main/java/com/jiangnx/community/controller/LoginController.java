@@ -1,6 +1,7 @@
 package com.jiangnx.community.controller;
 
 import com.google.code.kaptcha.Producer;
+import com.jiangnx.community.annotation.LoginRequried;
 import com.jiangnx.community.entity.User;
 import com.jiangnx.community.service.UserService;
 import com.jiangnx.community.util.CommunityConstant;
@@ -138,6 +139,7 @@ public class LoginController implements CommunityConstant {
 
     }
 
+    @LoginRequried
     @GetMapping("/logout")
     public String logout(@CookieValue("ticket")String ticket){
         userService.logout(ticket);

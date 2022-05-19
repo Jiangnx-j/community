@@ -43,7 +43,7 @@
     </update>
 
     <update id="updateHeader">
-        update user set header_url = #{headerUrl}
+        update user set header_url = #{url}
         where id = #{id}
     </update>
 
