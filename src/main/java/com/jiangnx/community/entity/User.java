@@ -2,11 +2,12 @@ package com.jiangnx.community.entity;
 
 import org.springframework.context.annotation.Bean;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
 
-public class User {
+public class User implements Serializable {
 
     private Integer id;
     private String username;

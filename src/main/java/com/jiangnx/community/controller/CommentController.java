@@ -26,6 +26,7 @@ public class CommentController {
     @Autowired
     private HostHolder hostHolder;
 
+    //添加评论
     @LoginRequried
     @PostMapping("/add/{discussId}")
     public String addComment(@PathVariable("discussId") Integer discussId,

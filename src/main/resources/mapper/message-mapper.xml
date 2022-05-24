@@ -38,7 +38,9 @@
         where status != 2
           and from_id !=1
           and conversation_id = #{conId}
+        order by create_time desc
         limit #{offset},#{limit}
+
     </select>
 
     <select id="selectLetterCountByConversationId" resultType="int">
@@ -49,7 +51,7 @@
           and conversation_id = #{conId}
     </select>
 
-    <select id="selectUnReadMessage" resultType="int">
+    <select id="selectUnReadMessageCount" resultType="int">
         SELECT count(id) from message
         where status != 2
           and from_id !=1
@@ -59,4 +61,30 @@
              and conversation_id = #{conId}
          </if>
     </select>
+
+    <select id="selectUnReadMessage" resultType="int">
+        SELECT id from message
+        where status != 2
+        and from_id !=1
+        and status = 0
+        AND to_id = #{userId}
+        <if test="conId!=null">
+            and conversation_id = #{conId}
+        </if>
+    </select>
+
+    <insert id="insertMessage" parameterType="Message">
+        insert into message(from_id, to_id, conversation_id, content, status, create_time)
+        values (#{fromId},#{toId},#{conversationId},#{content},#{status},#{createTime})
+    </insert>
+
+    <update id="updateStatus" parameterType="int">
+        update message set status = 1
+        where id in
+        <foreach item="id" open="(" separator="," close=")" collection="list">
+            #{id}
+        </foreach>
+    </update>
+
+
 </mapper>

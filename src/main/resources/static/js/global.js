@@ -31,4 +31,8 @@ window.alert = function(message) {
 	
 	$(".alert-box .modal-body p").text(message);
 	$(".alert-box").modal("show");
+};
+
+function login() {
+	location.replace(CONTEXT_PATH+"/login");
 }

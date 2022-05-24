@@ -25,6 +25,14 @@ public interface MessageMapper {
     Integer selectLetterCountByConversationId(String conId);
 
     //查询未读消息数量
-    Integer selectUnReadMessage(@Param("userId")Integer userId,@Param("conId")String conId);
+    Integer selectUnReadMessageCount(@Param("userId")Integer userId,@Param("conId")String conId);
 
+    //查询未读消息id
+    List<Integer> selectUnReadMessage(@Param("userId")Integer userId,@Param("conId")String conId);
+
+    //发消息，添加message
+    Integer insertMessage(Message message);
+
+    //将消息设置为已读
+    Integer updateStatus(List<Integer> ids);
 }

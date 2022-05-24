@@ -12,9 +12,11 @@ public interface MessageService {
 
     Integer findConversationCountByUserId(Integer userId);
 
-    List<Message> findLetterByConId(String conId,Integer offset,Integer limit);
+    List<Message> findLetterByConId(String conId,Integer offset,Integer limit,Integer unReadCount);
 
     Integer findLetterCountByConId(String conId);
 
     Integer findUnReadLetterByUserId(Integer userId,String conId);
+
+    Integer sendMessage(Message message);
 }

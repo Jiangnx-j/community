@@ -1,22 +1,20 @@
 package com.jiangnx.community.controller;
 
+import com.jiangnx.community.annotation.LoginRequried;
 import com.jiangnx.community.dao.MessageMapper;
 import com.jiangnx.community.entity.Message;
 import com.jiangnx.community.entity.Page;
 import com.jiangnx.community.entity.User;
 import com.jiangnx.community.service.MessageService;
 import com.jiangnx.community.service.UserService;
+import com.jiangnx.community.util.CommunityUtil;
 import com.jiangnx.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Controller
 @RequestMapping("/letter")
@@ -31,6 +29,7 @@ public class MessageController {
     @Autowired
     private HostHolder hostHolder;
 
+    @LoginRequried
     @GetMapping("/list")
     public String getLetterList(Model model, Page page){
         User user = hostHolder.getUser();
@@ -73,4 +72,68 @@ public class MessageController {
 
         return "site/letter";
     }
+
+    @LoginRequried
+    @GetMapping("/detail/{conId}")
+    public String letterDetail(@PathVariable("conId") String conId,Page page,Model model){
+        page.setLimit(10);
+        page.setPath("/letter/detail/"+conId );
+        page.setTotal(messageService.findLetterCountByConId(conId));
+        User me = hostHolder.getUser();
+
+        //查询未读消息数量
+        Integer unReadMsgCount = messageService.findUnReadLetterByUserId(me.getId(),conId);
+        //在用户点击会话详情时，应该清楚会话未读消息数量
+        List<Message> letters = messageService.findLetterByConId(conId,page.getOffset(),page.getLimit(),unReadMsgCount);
+        User targetUser = null;
+
+        List<Map<String,Object>> msgVoList = new ArrayList<>();
+        for(Message letter:letters){
+            Map<String,Object> msgVo = new HashMap<>();
+            User fromUser = userService.findUserById(letter.getFromId());
+            msgVo.put("message", letter);
+            msgVo.put("fromUser", fromUser);
+            msgVoList.add(msgVo);
+        }
+        if (me.getId() == letters.get(0).getFromId()){
+            targetUser = userService.findUserById(letters.get(0).getToId());
+        }else {
+            targetUser = userService.findUserById(letters.get(0).getFromId());
+        }
+        model.addAttribute("targetUser",targetUser);
+        model.addAttribute("msgVoList",msgVoList);
+        return "/site/letter-detail";
+    }
+
+    @LoginRequried
+    @PostMapping("/send")
+    @ResponseBody
+    public String sendMessage(String targetName,String content){
+        User user = hostHolder.getUser();
+        User targetUser = userService.findByName(targetName);
+        if (targetUser == null){
+            return CommunityUtil.getJSONString(1,"用户不存在", null);
+        }
+
+        Message message = new Message();
+        message.setFromId(user.getId());
+        message.setToId(targetUser.getId());
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        message.setStatus(0);
+        String conid = null;
+        if (targetUser.getId() < user.getId()){
+            conid = targetUser.getId() + "_" + user.getId();
+        }else {
+            conid = user.getId() + "_" + targetUser.getId();
+        }
+        message.setConversationId(conid);
+        Integer result = messageService.sendMessage(message);
+       if (result == 1){
+           return CommunityUtil.getJSONString(0,"发送成功", null);
+       }else {
+           return CommunityUtil.getJSONString(1,"发送失败", null);
+       }
+    }
+
 }

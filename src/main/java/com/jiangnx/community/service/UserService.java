@@ -11,11 +11,13 @@ public interface UserService {
 
     User findUserById(Integer userId);
 
+    User findByName(String name);
+
     Map<String,Object> register(User user);
 
     Integer activation(Integer userid, String code);
 
-    Map<String,Object> login(String username,String password,long expiredSeconds);
+    Map<String,Object>  login(String username,String password,long expiredSeconds);
 
     void logout(String ticket);
 
@@ -24,4 +26,5 @@ public interface UserService {
     Integer updateHeader(Integer userId,String headerUrl);
 
     Map<String,Object> updateUserPassword(String oldPassword,String newPassword);
+
 }

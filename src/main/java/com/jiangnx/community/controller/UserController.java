@@ -2,6 +2,7 @@ package com.jiangnx.community.controller;
 
 import com.jiangnx.community.annotation.LoginRequried;
 import com.jiangnx.community.entity.User;
+import com.jiangnx.community.service.LikeService;
 import com.jiangnx.community.service.UserService;
 import com.jiangnx.community.util.CommunityUtil;
 import com.jiangnx.community.util.HostHolder;
@@ -31,6 +32,9 @@ public class UserController {
 
     @Autowired
     private HostHolder hostHolder;
+
+    @Autowired
+    private LikeService likeService;
 
     @Value("${community.domain}")
     private String domain;
@@ -109,5 +113,31 @@ public class UserController {
             model.addAttribute("newPasswordMsg",map.get("newPasswordMsg"));
             return "/site/setting";
         }
+    }
+
+    @LoginRequried
+    @GetMapping("/profile/{userId}")
+    public String userProfile(@PathVariable("userId")Integer userId,Model model){
+        User loginUser = hostHolder.getUser();
+
+        //查询用户获得点赞数
+        Integer likeCountUser = likeService.getLikeCountUser(userId);
+        model.addAttribute("likeCount",likeCountUser);
+        User user = userService.findUserById(userId);
+        model.addAttribute("user",user);
+        //查询用户粉丝数量
+        long followeeCount = likeService.findFolloweeCount(userId);
+        model.addAttribute("followees",followeeCount);
+        //查询用户关注数量
+        long followerCount = likeService.findFollowerCount(userId);
+        model.addAttribute("followers",followerCount);
+        //查询用户是否关注该作者
+        boolean follower = likeService.isFollower(userId, loginUser.getId());
+        model.addAttribute("isFollower",follower);
+
+        if (loginUser.getId() == userId){
+            model.addAttribute("me","me");
+        }
+        return "/site/profile";
     }
 }

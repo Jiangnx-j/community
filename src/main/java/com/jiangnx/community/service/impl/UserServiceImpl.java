@@ -24,6 +24,8 @@ import java.util.Random;
 @Service
 public class UserServiceImpl implements UserService, CommunityConstant {
 
+
+
     @Autowired
     private UserMapper userMapper;
 
@@ -51,6 +53,11 @@ public class UserServiceImpl implements UserService, CommunityConstant {
     @Override
     public User findUserById(Integer userId) {
         return userMapper.selectUserById(userId);
+    }
+
+    @Override
+    public User findByName(String name) {
+        return userMapper.selectUserByName(name);
     }
 
     @Override
